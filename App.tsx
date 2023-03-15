@@ -1,5 +1,5 @@
 import { } from 'react-native-gesture-handler';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, SafeAreaView, Alert } from 'react-native';
 import ListItem from './src/components/ListItem';
 import {
@@ -8,8 +8,9 @@ import {
 } from '@gorhom/bottom-sheet';
 
 import { SAMPLE_DATA } from "./assets/data/sampleData";
-import Chart from './src/components/Chart';
 import ItemDetails from './src/components/ItemDetails';
+import getMarketData from './src/services/coinDataService';
+import Chart from './src/components/Chart';
 
 const ListHeader = (): JSX.Element => {
   return (
@@ -26,6 +27,7 @@ const App = (): JSX.Element => {
 
   const [selectCoinData, setSelectCoinData] = useState(null);
   const [clicked, setClicked] = useState(false);
+  const [data, setData] = useState([]);
 
   // ref
   const bottomSheetModalRef = useRef(null);
@@ -44,13 +46,21 @@ const App = (): JSX.Element => {
     }
   }
 
+  useEffect(() => {
+    const loadMarketData = async () => {
+      const marketData = await getMarketData();
+      setData(marketData);
+    }
+    loadMarketData();
+  }, []);
+
 
   return (
     <BottomSheetModalProvider>
       <SafeAreaView style={styles.container}>
         <FlatList
           keyExtractor={(item) => item.id}
-          data={SAMPLE_DATA}
+          data={data}
           renderItem={({ item }) => (
             <ListItem
               name={item.name}
@@ -84,7 +94,7 @@ const App = (): JSX.Element => {
           />
          </View> : null
         }
-        
+        <Chart priceChange7d={selectCoinData.sparkline_in_7d.price}/>
       </BottomSheetModal>
     </BottomSheetModalProvider>
   );
